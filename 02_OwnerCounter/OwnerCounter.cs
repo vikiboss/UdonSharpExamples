@@ -1,18 +1,12 @@
 using TMPro;
 using UdonSharp;
 using VRC.SDKBase;
-using UnityEngine.UI;
+using VRC.Udon.Common.Interfaces;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
-public class OwnerOnlyCounter : UdonSharpBehaviour
+public class OwnerCountCanvas : UdonSharpBehaviour
 {
   public TextMeshProUGUI displayCount;
-
-
-  private Button btn;
-  private Image btnImage;
-  private TextMeshProUGUI btnText;
-
 
   [UdonSynced, FieldChangeCallback(nameof(counter))]
   private int _counter = 0;
@@ -29,24 +23,17 @@ public class OwnerOnlyCounter : UdonSharpBehaviour
 
   void Start()
   {
-    btn = GetComponent<Button>();
-    btnText = GetComponent<TextMeshProUGUI>();
-    btnImage = GetComponent<Image>();
-
     UpdateText();
     UpdateButtonVisibility();
   }
 
   public void UpdateButtonVisibility()
   {
-    bool isOwner = Networking.IsOwner(gameObject);
-
-    btn.interactable = isOwner;
-    btnText.enabled = isOwner;
-    btnImage.enabled = isOwner;
+    TextMeshProUGUI btnText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
+    btnText.text = Networking.IsOwner(gameObject) ? "Add Count" : "Notice Owner";
   }
 
-  public void UpdateText()
+  private void UpdateText()
   {
     displayCount.text = counter.ToString();
   }
@@ -58,11 +45,10 @@ public class OwnerOnlyCounter : UdonSharpBehaviour
       counter++;
       RequestSerialization();
     }
-  }
-
-  public override void OnDeserialization()
-  {
-    UpdateText();
+    else
+    {
+      SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(AddOwnerCount));
+    }
   }
 
   public override bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi requestedOwner)
