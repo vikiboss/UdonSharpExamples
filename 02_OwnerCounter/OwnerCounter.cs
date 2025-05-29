@@ -1,5 +1,6 @@
 using TMPro;
 using UdonSharp;
+using VRC.SDK3.UdonNetworkCalling;
 using VRC.SDKBase;
 using VRC.Udon.Common.Interfaces;
 
@@ -27,6 +28,7 @@ public class OwnerCounter : UdonSharpBehaviour
     UpdateButtonVisibility();
   }
 
+  [NetworkCallable]
   public void AddOwnerCount()
   {
     if (Networking.IsOwner(gameObject))

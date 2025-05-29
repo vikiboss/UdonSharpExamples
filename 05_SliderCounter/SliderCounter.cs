@@ -1,29 +1,51 @@
 using TMPro;
 using UdonSharp;
 using UnityEngine.UI;
+using VRC.SDKBase;
+using VRC.Udon.Common.Interfaces;
 
-[UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class SliderCounter : UdonSharpBehaviour
 {
   public TextMeshProUGUI displayCount;
 
   private Slider _slider;
+
+  [UdonSynced, FieldChangeCallback(nameof(sliderValue))]
   private float _sliderValue = 0f;
+
+  private float sliderValue
+  {
+    get => _sliderValue;
+    set
+    {
+      _sliderValue = value;
+      UpdateTextAndSlider();
+    }
+  }
 
   void Start()
   {
     _slider = GetComponent<Slider>();
-    UpdateText();
+    UpdateTextAndSlider();
   }
 
-  public void OnValueChanged()
+  public void OnValueChanged(float? nextSliderValue)
   {
-    _sliderValue = _slider.value;
-    UpdateText();
+    if (Networking.IsOwner(gameObject))
+    {
+      sliderValue = nextSliderValue ?? _slider.value;
+      RequestSerialization();
+    }
+    else
+    {
+      SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OnValueChanged), _slider.value);
+    }
   }
 
-  private void UpdateText()
+  private void UpdateTextAndSlider()
   {
-    displayCount.text = (_sliderValue * 100).ToString("F0");
+    displayCount.text = (sliderValue * 100).ToString("F0");
+    _slider.value = sliderValue;
   }
 }
