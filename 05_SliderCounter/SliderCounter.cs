@@ -33,7 +33,7 @@ public class SliderCounter : UdonSharpBehaviour
     UpdateTextAndSlider();
   }
 
-  public void handleValueChangedBySlider()
+  public void HandleValueChangedBySlider()
   {
     if (Mathf.Abs(_slider.value - _sliderValue) <= SYNC_THRESHOLD) return;
 
