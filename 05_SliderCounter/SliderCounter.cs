@@ -37,7 +37,6 @@ public class SliderCounter : UdonSharpBehaviour {
     } else {
       SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OnValueChanged), _slider.value);
     }
-
   }
 
   public void OnValueChanged(float nextValue) {
@@ -51,5 +50,4 @@ public class SliderCounter : UdonSharpBehaviour {
     displayCount.text = (sliderValue * 100).ToString("F0");
     _slider.value = sliderValue;
   }
-
 }
