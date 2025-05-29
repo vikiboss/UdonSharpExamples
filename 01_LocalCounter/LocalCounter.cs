@@ -2,25 +2,21 @@ using TMPro;
 using UdonSharp;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
-public class LocalCounter : UdonSharpBehaviour
-{
+public class LocalCounter : UdonSharpBehaviour {
   public TextMeshProUGUI displayCount;
 
   private int _counter = 0;
 
-  void Start()
-  {
+  void Start() {
     UpdateText();
   }
 
-  public void AddLocalCount()
-  {
+  public void AddLocalCount() {
     _counter++;
     UpdateText();
   }
 
-  private void UpdateText()
-  {
+  private void UpdateText() {
     displayCount.text = _counter.ToString();
   }
 }
