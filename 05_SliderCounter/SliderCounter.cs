@@ -30,16 +30,24 @@ public class SliderCounter : UdonSharpBehaviour
     UpdateTextAndSlider();
   }
 
-  public void OnValueChanged(float? nextSliderValue)
+  public void handleValueChangedBySlider()
   {
     if (Networking.IsOwner(gameObject))
     {
-      sliderValue = nextSliderValue ?? _slider.value;
-      RequestSerialization();
+      OnValueChanged(_slider.value);
     }
     else
     {
       SendCustomNetworkEvent(NetworkEventTarget.Owner, nameof(OnValueChanged), _slider.value);
+    }
+  }
+
+  public void OnValueChanged(float nextValue)
+  {
+    if (Networking.IsOwner(gameObject))
+    {
+      sliderValue = nextValue;
+      RequestSerialization();
     }
   }
 
