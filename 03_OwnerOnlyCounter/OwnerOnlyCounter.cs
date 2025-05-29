@@ -8,9 +8,7 @@ public class OwnerOnlyCounter : UdonSharpBehaviour
 {
   public TextMeshProUGUI displayCount;
 
-
   private Button button;
-
 
   [UdonSynced, FieldChangeCallback(nameof(counter))]
   private int _counter = 0;
@@ -33,19 +31,6 @@ public class OwnerOnlyCounter : UdonSharpBehaviour
     UpdateButtonVisibility();
   }
 
-  public void UpdateButtonVisibility()
-  {
-    bool isOwner = Networking.IsOwner(gameObject);
-    button.interactable = isOwner;
-    TextMeshProUGUI btnText = button.GetComponentInChildren<TextMeshProUGUI>();
-    btnText.text = isOwner ? "Add Count" : "Owner Only";
-  }
-
-  public void UpdateText()
-  {
-    displayCount.text = counter.ToString();
-  }
-
   public void AddOwnerCount()
   {
     if (Networking.IsOwner(gameObject))
@@ -63,5 +48,18 @@ public class OwnerOnlyCounter : UdonSharpBehaviour
   public override void OnOwnershipTransferred(VRCPlayerApi player)
   {
     UpdateButtonVisibility();
+  }
+
+  public void UpdateButtonVisibility()
+  {
+    bool isOwner = Networking.IsOwner(gameObject);
+    button.interactable = isOwner;
+    TextMeshProUGUI btnText = button.GetComponentInChildren<TextMeshProUGUI>();
+    btnText.text = isOwner ? "Add Count" : "Owner Only";
+  }
+
+  private void UpdateText()
+  {
+    displayCount.text = counter.ToString();
   }
 }
