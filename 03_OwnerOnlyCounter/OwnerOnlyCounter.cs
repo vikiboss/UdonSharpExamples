@@ -6,29 +6,30 @@ using UnityEngine.UI;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class OwnerOnlyCounter : UdonSharpBehaviour {
   public TextMeshProUGUI displayCount;
-
   private Button button;
-
+  private TextMeshProUGUI buttonText;
+  private bool isOwner;
   [UdonSynced, FieldChangeCallback(nameof(counter))]
   private int _counter = 0;
-
   private int counter {
     get => _counter;
     set {
       _counter = value;
-      UpdateText();
+      UpdateCounterText();
     }
   }
 
   void Start() {
+    isOwner = Networking.IsOwner(gameObject);
     button = GetComponent<Button>();
+    buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
 
-    UpdateText();
-    UpdateButtonVisibility();
+    UpdateCounterText();
+    UpdateButtonStatus();
   }
 
   public void AddOwnerCount() {
-    if (Networking.IsOwner(gameObject)) {
+    if (isOwner) {
       counter++;
       RequestSerialization();
     }
@@ -39,17 +40,16 @@ public class OwnerOnlyCounter : UdonSharpBehaviour {
   }
 
   public override void OnOwnershipTransferred(VRCPlayerApi player) {
-    UpdateButtonVisibility();
+    isOwner = Networking.IsOwner(gameObject);
+    UpdateButtonStatus();
   }
 
-  public void UpdateButtonVisibility() {
-    bool isOwner = Networking.IsOwner(gameObject);
+  private void UpdateButtonStatus() {
     button.interactable = isOwner;
-    TextMeshProUGUI btnText = button.GetComponentInChildren<TextMeshProUGUI>();
-    btnText.text = isOwner ? "Add Count" : "Owner Only";
+    buttonText.text = isOwner ? "Add Count" : "Owner Only";
   }
 
-  private void UpdateText() {
-    displayCount.text = counter.ToString();
+  private void UpdateCounterText() {
+    displayCount.text = _counter.ToString();
   }
 }

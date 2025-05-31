@@ -7,26 +7,26 @@ using VRC.Udon.Common.Interfaces;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class OwnerCounter : UdonSharpBehaviour {
   public TextMeshProUGUI displayCount;
-
+  private bool isOwner;
   [UdonSynced, FieldChangeCallback(nameof(counter))]
   private int _counter = 0;
-
   private int counter {
     get => _counter;
     set {
       _counter = value;
-      UpdateText();
+      UpdateCounterText();
     }
   }
 
   void Start() {
-    UpdateText();
+    isOwner = Networking.IsOwner(gameObject);
+    UpdateCounterText();
     UpdateButtonVisibility();
   }
 
   [NetworkCallable]
   public void AddOwnerCount() {
-    if (Networking.IsOwner(gameObject)) {
+    if (isOwner) {
       counter++;
       RequestSerialization();
     } else {
@@ -39,15 +39,16 @@ public class OwnerCounter : UdonSharpBehaviour {
   }
 
   public override void OnOwnershipTransferred(VRCPlayerApi player) {
+    isOwner = Networking.IsOwner(gameObject);
     UpdateButtonVisibility();
   }
 
-  private void UpdateText() {
-    displayCount.text = counter.ToString();
+  private void UpdateCounterText() {
+    displayCount.text = _counter.ToString();
   }
 
   private void UpdateButtonVisibility() {
     TextMeshProUGUI btnText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
-    btnText.text = Networking.IsOwner(gameObject) ? "Add Count" : "Notice Owner";
+    btnText.text = isOwner ? "Add Count" : "Add at Owner";
   }
 }

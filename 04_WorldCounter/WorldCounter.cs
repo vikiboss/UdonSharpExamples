@@ -5,28 +5,28 @@ using VRC.SDKBase;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class WorldCounter : UdonSharpBehaviour {
   public TextMeshProUGUI displayCount;
-
+  private bool isOwner;
   [UdonSynced, FieldChangeCallback(nameof(counter))]
   private int _counter = 0;
-
   private int counter {
     get => _counter;
     set {
       _counter = value;
-      UpdateText();
+      UpdateCounterText();
     }
   }
 
   void Start() {
-    UpdateText();
+    isOwner = Networking.IsOwner(gameObject);
+    UpdateCounterText();
   }
 
-  private void UpdateText() {
-    displayCount.text = counter.ToString();
+  private void UpdateCounterText() {
+    displayCount.text = _counter.ToString();
   }
 
   public void AddWorldCount() {
-    if (!Networking.IsOwner(gameObject)) {
+    if (!isOwner) {
       Networking.SetOwner(Networking.LocalPlayer, gameObject);
     }
 
@@ -35,6 +35,7 @@ public class WorldCounter : UdonSharpBehaviour {
   }
 
   public override bool OnOwnershipRequest(VRCPlayerApi requestingPlayer, VRCPlayerApi requestedOwner) {
+    isOwner = requestingPlayer.isLocal;
     return true;
   }
 }

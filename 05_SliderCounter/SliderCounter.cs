@@ -9,11 +9,11 @@ using VRC.Udon.Common.Interfaces;
 [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
 public class SliderCounter : UdonSharpBehaviour {
   public TextMeshProUGUI displayCount;
-
   private Slider _slider;
-  private const float SYNC_THRESHOLD = 0.01f;
-  private const float SYNC_THROTTLE = 0.1f;
+  private bool isOwner;
+  private bool isSyncing = false;
   private float lastChangeAt = 0;
+  private const float SYNC_THROTTLE = 1f;
 
   [UdonSynced, FieldChangeCallback(nameof(sliderValue))]
   private float _sliderValue = 0f;
@@ -22,38 +22,44 @@ public class SliderCounter : UdonSharpBehaviour {
     get => _sliderValue;
     set {
       _sliderValue = value;
-      UpdateTextAndSlider();
+      _slider.value = value;
+      isSyncing = false;
+      UpdateSliderText();
     }
   }
 
   void Start() {
+    isOwner = Networking.IsOwner(gameObject);
     _slider = GetComponent<Slider>();
-    UpdateTextAndSlider();
+    UpdateSliderText();
+  }
+
+  void LateUpdate() {
+    bool isIdle = Time.time - lastChangeAt >= SYNC_THROTTLE;
+    bool isValueChanged = Mathf.Abs(_slider.value - sliderValue) >= 0.01f;
+
+    if (!isSyncing && isIdle && isValueChanged) {
+      if (isOwner) {
+        OnValueChanged(_slider.value);
+      } else {
+        isSyncing = true;
+        SendCustomNetworkEvent(NetworkEventTarget.Owner, "OnValueChanged", _slider.value);
+      }
+    }
   }
 
   public void HandleValueChangedBySlider() {
-    if (Time.time != 0 && Time.time - lastChangeAt < SYNC_THROTTLE) return;
-    if (Mathf.Abs(_slider.value - _sliderValue) <= SYNC_THRESHOLD) return;
-
     lastChangeAt = Time.time;
-
-    if (Networking.IsOwner(gameObject)) {
-      OnValueChanged(_slider.value);
-    } else {
-      SendCustomNetworkEvent(NetworkEventTarget.Owner, "OnValueChanged", _slider.value);
-    }
+    UpdateSliderText();
   }
 
   [NetworkCallable]
   public void OnValueChanged(float nextValue) {
-    if (Networking.IsOwner(gameObject)) {
-      sliderValue = nextValue;
-      RequestSerialization();
-    }
+    sliderValue = nextValue;
+    RequestSerialization();
   }
 
-  private void UpdateTextAndSlider() {
-    displayCount.text = (sliderValue * 100).ToString("F0");
-    _slider.value = sliderValue;
+  private void UpdateSliderText() {
+    displayCount.text = (_slider.value * 100).ToString("F0");
   }
 }

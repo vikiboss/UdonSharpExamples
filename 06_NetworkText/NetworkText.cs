@@ -4,9 +4,9 @@ using VRC.SDK3.StringLoading;
 using VRC.SDKBase;
 using VRC.Udon.Common.Interfaces;
 
-[UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
+[UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
 public class NetworkText : UdonSharpBehaviour {
-  public TextMeshProUGUI textContainer;
+  public TextMeshProUGUI text;
   public VRCUrl url;
 
   void Start() {
@@ -14,10 +14,10 @@ public class NetworkText : UdonSharpBehaviour {
   }
 
   public override void OnStringLoadSuccess(IVRCStringDownload result) {
-    textContainer.text = result.Result;
+    text.text = result.Result;
   }
 
   public override void OnStringLoadError(IVRCStringDownload result) {
-    textContainer.text = $"{result.ErrorCode} Error: {result.Error} ({result.Url})";
+    text.text = $"{result.ErrorCode} Error: {result.Error} ({result.Url})";
   }
 }
